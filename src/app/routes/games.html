@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.9.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.9.2/firebase-firestore-compat.js"></script>
+    <script>
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDbUlKUs8Hef5DRem1N4lUi7_aiu2d-1ts",
+            authDomain: "quiz-bd-445af.firebaseapp.com",
+            projectId: "quiz-bd-445af",
+            storageBucket: "quiz-bd-445af.appspot.com",
+            messagingSenderId: "190389581084",
+            appId: "1:190389581084:web:54a8a2926e6c64d5e2f6d9"
+        };
+
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        let questions = [];
+        let indiceQuest = 0;
+        let score = 0;
+
+        // Función para obtener preguntas de Firestore
+        async function getQuestionsFromFirestore(collection) {
+            const questions = [];
+            const querySnapshot = await db.collection(collection).get();
+            querySnapshot.forEach((doc) => {
+                questions.push(doc.data());
+            });
+            return questions;
+        }
+
+        // Función para mostrar las preguntas
+        async function mostrarQuest(){
+            const actualQuest = questions[indiceQuest]; 
+            const question = document.getElementById('actualQuest');
+            const options = document.getElementById('actualOptions'); 
+            const contadorQuest = document.getElementById('contadorQuest');
+            const actualScore = document.getElementById('score');
+
+            if (question && options && contadorQuest) {
+                question.textContent = actualQuest.question;
+                options.innerHTML = "";
+                actualQuest.options.sort(() => 0.5 - Math.random()); // Mezclar opciones
+                actualQuest.options.forEach((option, index) => {
+                    const button = document.createElement("button");
+                    button.textContent = option;
+                    button.classList.add("bg-gray-200", "hover:bg-gray-300", "text-gray-800", "font-bold", "py-2", "px-4", "rounded", "active:bg-yellow-300" );
+                    button.addEventListener("click", () => check(option)); 
+                    options.appendChild(button);
+                });
+                contadorQuest.textContent = `Pregunta ${indiceQuest + 1} de ${questions.length}`;
+                actualScore.textContent = `Puntuación: ${score}`;
+            }
+        };
+
+        // Función para verificar la opción seleccionada
+        function check(option){
+            const actualQuest = questions[indiceQuest];
+            if (option === actualQuest.correctAnswer) { 
+                score += 10;
+            }
+            indiceQuest++; 
+            if (indiceQuest < questions.length) {
+                mostrarQuest();
+            } else {
+                mostrarResultado();
+            }
+        };
+
+        // Función para mostrar el resultado final
+        function mostrarResultado(){
+            const resultado = document.getElementById('resultado');
+            const resultadoPanel = document.getElementById('resultadoPanel');
+            const juego = document.getElementById('juego');
+
+            juego.classList.add('hidden');
+            resultadoPanel.classList.remove('hidden');
+
+            if (resultado) {
+                resultado.textContent = `Tu puntaje final es: ${score} puntos`;
+            }
+        };
+
+        // Función para iniciar el juego
+        async function iniciarJuego() {
+            const tema = document.getElementById('tema').value;
+            questions = await getQuestionsFromFirestore(tema);
+            if (questions.length > 0) {
+                indiceQuest = 0;
+                score = 0;
+                mostrarQuest();
+                document.querySelector('.text-center').classList.add('hidden');
+                document.getElementById('juego').classList.remove('hidden');
+            } else {
+                alert('No hay preguntas disponibles para el tema seleccionado.');
+            }
+        }
+
+        // Función para confirmar volver al home
+        function confirmarVolverAlHome() {
+            if (confirm("¿Quieres volver a la página inicial?")) {
+                window.location.href = "../../home.html";
+            }
+        }
+
+        // Evento para iniciar el juego
+        document.addEventListener('DOMContentLoaded', (event) => {
+            document.getElementById('btnIniciarJuego').addEventListener('click', iniciarJuego);
+            document.getElementById('btnVolver').addEventListener('click', confirmarVolverAlHome);
+
+            document.getElementById('btnCloseJuego').addEventListener('click', () => {
+                if (confirm("¿Quieres volver a la página inicial?")) {
+                    document.getElementById('juego').classList.add('hidden');
+                    document.querySelector('.text-center').classList.remove('hidden');
+                }
+            });
+        });
+    </script>
+</head>
+<body class="bg-gray-900 text-white h-screen flex flex-col items-center justify-center">
+    <div class="text-center mb-6">
+        <h1 class="text-4xl font-extrabold mb-4">KODE-QUIZ</h1>
+        <div>
+            <label for="tema" class="block text-lg font-bold mb-2">Selecciona el Tema:</label>
+            <select id="tema" class="w-full px-3 py-2 rounded bg-gray-800 text-white">
+                <option value="lenguaje_marcas">Lenguaje de Marcas</option>
+                <option value="sistemas_informaticos">Sistemas Informáticos</option>
+                <option value="programacion">Programación</option>
+                <option value="bases_datos">Bases de Datos</option>
+                <option value="entornos_desarrollo">Entornos de Desarrollo</option>
+            </select>
+        </div>
+        <button id="btnIniciarJuego" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4">Iniciar Juego</button>
+        <button id="btnVolverJuego" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onclick="confirmarVolverAlHome()">Volver al Home</button>
+       
+    </div>
+
+    <div id="juego" class="hidden max-w-3xl p-4">
+        <!-- Contenedor del juego -->
+        <div class="border-black border-2 rounded-xl">
+            <!-- Barra de cierre del juego -->
+            <div class="text-right overflow-hidden h-6 bg-black rounded-t-xl text-white">
+                <button id="btnCloseJuego" class="mr-0 text-right px-2 transition hover:font-bold">Cerrar X</button>
+            </div>
+            <!-- Elemento de puntuación -->
+            <div class="text-left ml-2 mb-6">
+                <div id="score" class="inline-table p-2 text-right text-sm overflow-hidden text-yellow-400"></div>
+            </div>
+            <!-- Elemento de Pregunta Actual -->
+            <div id="actualQuest" class="mx-4 font-bold text-xl mb-4"></div>
+            <div class="mb-10">
+                <!-- Elemento de Opciones de la pregunta actual -->
+                <div id="actualOptions" class="m-2 grid grid-cols-1 md:grid-cols-4 gap-4 mb-4"></div>
+            </div>
+            <!-- Elemento contador de preguntas -->
+            <div class="text-end text-sm opacity-70 border-t-2 border-black">
+                <div id="contadorQuest" class="bottom-0 m-4"></div>
+            </div>
+        </div>
+        <!-- Botón de Volver al Home -->
+        <div class="mt-4">
+            <button id="btnVolverJuego" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onclick="confirmarVolverAlHome()">Volver al Home</button>
+        </div>
+    </div>
+
+    <div id="resultadoPanel" class="hidden mt-4">
+        <div id="resultado" class="text-xl md:text-2xl lg:text-4xl font-extrabold text-yellow-400"></div>
+        <div class="transition p-3 inline-table text-center overflow-hidden h-6 mt-10 bg-black rounded-xl text-white hover:font-bold hover:scale-110 hover:bg-slate-900">
+            <button id="btnVolver" class="text-right px-2">Volver a Inicio</button>   
+        </div>
+    </div>
+</body>
+</html>
+

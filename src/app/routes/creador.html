@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creador de Preguntas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.9.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.9.2/firebase-firestore-compat.js"></script>
+    <script>
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDbUlKUs8Hef5DRem1N4lUi7_aiu2d-1ts",
+            authDomain: "quiz-bd-445af.firebaseapp.com",
+            projectId: "quiz-bd-445af",
+            storageBucket: "quiz-bd-445af.appspot.com",
+            messagingSenderId: "190389581084",
+            appId: "1:190389581084:web:54a8a2926e6c64d5e2f6d9"
+        };
+
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Función para guardar la pregunta en Firestore
+        async function guardarPregunta() {
+            const tema = document.getElementById('tema').value;
+            const question = document.getElementById('pregunta').value;
+            const correctAnswer = document.getElementById('respuestaCorrecta').value;
+            const option1 = document.getElementById('opcion1').value;
+            const option2 = document.getElementById('opcion2').value;
+            const option3 = document.getElementById('opcion3').value;
+
+            if (question && correctAnswer && option1 && option2 && option3) {
+                await db.collection(tema).add({
+                    question: question,
+                    correctAnswer: correctAnswer,
+                    options: [correctAnswer, option1, option2, option3]
+                });
+                alert('Pregunta guardada exitosamente.');
+                document.getElementById('pregunta').value = '';
+                document.getElementById('respuestaCorrecta').value = '';
+                document.getElementById('opcion1').value = '';
+                document.getElementById('opcion2').value = '';
+                document.getElementById('opcion3').value = '';
+            } else {
+                alert('Por favor, completa todos los campos.');
+            }
+        }
+
+        // Función para confirmar volver al home
+        function confirmarVolverAlHome() {
+            if (confirm("¿Quieres volver a la página inicial?")) {
+                window.location.href = "../../home.html";
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', (event) => {
+            document.getElementById('btnGuardarPregunta').addEventListener('click', guardarPregunta);
+            document.getElementById('btnVolverHome').addEventListener('click', confirmarVolverAlHome);
+        });
+    </script>
+</head>
+<body class="bg-gray-900 text-white h-screen flex flex-col items-center justify-center">
+    <div class="text-center mb-6">
+        <h1 class="text-4xl font-extrabold mb-4">Creador de Preguntas</h1>
+        <div class="mb-4">
+            <label for="tema" class="block text-lg font-bold mb-2">Selecciona el Tema:</label>
+            <select id="tema" class="w-full px-3 py-2 rounded bg-gray-800 text-white">
+                <option value="lenguaje_marcas">Lenguaje de Marcas</option>
+                <option value="sistemas_informaticos">Sistemas informáticos</option>
+                <option value="programacion">Programación</option>
+                <option value="bases_datos">Bases de Datos</option>
+                <option value="entornos_desarrollo">Entornos de Desarrollo</option>
+            </select>
+        </div>
+        <div class="mb-4">
+            <label for="pregunta" class="block text-lg font-bold mb-2">Pregunta:</label>
+            <input type="text" id="pregunta" class="w-full px-3 py-2 rounded bg-gray-800 text-white">
+        </div>
+        <div class="mb-4">
+            <label for="respuestaCorrecta" class="block text-lg font-bold mb-2">Respuesta Correcta:</label>
+            <input type="text" id="respuestaCorrecta" class="w-full px-3 py-2 rounded bg-gray-800 text-white">
+        </div>
+        <div class="mb-4">
+            <label for="opcion1" class="block text-lg font-bold mb-2">Opción 1:</label>
+            <input type="text" id="opcion1" class="w-full px-3 py-2 rounded bg-gray-800 text-white">
+        </div>
+        <div class="mb-4">
+            <label for="opcion2" class="block text-lg font-bold mb-2">Opción 2:</label>
+            <input type="text" id="opcion2" class="w-full px-3 py-2 rounded bg-gray-800 text-white">
+        </div>
+        <div class="mb-4">
+            <label for="opcion3" class="block text-lg font-bold mb-2">Opción 3:</label>
+            <input type="text" id="opcion3" class="w-full px-3 py-2 rounded bg-gray-800 text-white">
+        </div>
+        <button id="btnGuardarPregunta" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Guardar Pregunta</button>
+        <button id="btnVolverHome" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mt-4">Volver al Home</button>
+    </div>
+</body>
+</html>
